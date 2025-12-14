@@ -1,98 +1,98 @@
-# 🎯 RetainAI - Plateforme de Prédiction et Rétention Client
+# RetainAI
 
-<div align="center">
-
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-2.0+-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.0+-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
-[![pandas](https://img.shields.io/badge/pandas-1.3+-150458?style=flat-square&logo=pandas&logoColor=white)](https://pandas.pydata.org/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)](#)
-
-**Auteur:** HAMZA EL MANDOURI | **Version:** 1.0.0
-
-</div>
+RetainAI est une application web visant à analyser et prédire le churn client, avec un dashboard métier, des scripts d'entraînement ML et des utilities pour importer et traiter des données.
 
 ---
 
-## 📋 Table des matières
+## Fonctionnalités
 
-- [À propos](#-à-propos)
-- [Fonctionnalités](#-fonctionnalités)
-- [Architecture Technique](#-architecture-technique)
-- [Utilisation](#-utilisation)
-- [Structure du Projet](#-structure-du-projet)
-## RetainAI — Récapitulatif Professionnel
-
-**Auteur :** HAMZA EL MANDOURI
-
----
-
-## Résumé (pour recruteurs)
-
-RetainAI est une application web full-stack développée en Python/Flask, conçue pour aider les entreprises à identifier les clients à risque de churn et à piloter des actions de rétention. Le projet montre des compétences en :
-
-- Développement backend (API et architecture Flask)
-- Intégration de pipelines ML simples (préprocessing, entraînement, sérialisation)
-- Conception d'interfaces et visualisations (Jinja2, Chart.js)
-- Pratiques de MLOps et gestion de modèles
-- Gestion de projet et documentation technique
-
-Ce repository est un bon exemple pour un profil de Data Analyst / Junior Python Developer cherchant à démontrer capacité à produire une solution complète de bout en bout.
-
----
-
-## Points forts à mettre en avant dans un CV / entretien
-
-- Architecture claire et découplée (`app/`, `services/`, `models/`).
-- Pipeline de données et modèle Random Forest reproductible.
-- Visualisations interactives dans le dashboard pour KPI et segmentation.
-- Utilisation de bonnes pratiques : modularité, fichiers de configuration et scripts utilitaires.
-- Livraison prête à être dockerisée ou déployée sur un PaaS.
+- Scores de churn individuels (Random Forest)
+- Dashboard de KPIs et segmentation
+- Import CSV et préprocessing basique
+- Scripts d'entraînement et de seed data
+- Export et versioning simple des modèles
 
 ---
 
 ## Stack technique
 
-- Langage : Python 3.9+
-- Framework : Flask
-- Data : Pandas, NumPy, scikit-learn
-- DB : SQLite (dev) / PostgreSQL (prod)
-- Frontend : Jinja2, TailwindCSS, Chart.js, Alpine.js
-- Tests / Qualité : (prévoir pytest, flake8, black)
+- Python 3.9+
+- Flask
+- pandas / numpy
+- scikit-learn
+- SQLite (dev) / PostgreSQL (prod)
+- Jinja2, TailwindCSS, Chart.js
 
 ---
 
-## Fichiers & dossiers clés
+## Démarrage rapide
 
-- `app/` — Application Flask (routes, blueprints, services)
-- `models/` — Modèles ML et métadonnées
-- `data/` — Jeu de données (ex : Telco-Customer-Churn.csv)
-- `model_generator.py` — Script d'entraînement
-- `seed_data.py` — Script pour données de démonstration
-- `run.py` / `app.py` — Entrées de l'application
-- `requirements.txt` — Dépendances
+1. Cloner le dépôt :
+
+```bash
+git clone https://github.com/ELMANDOURIHAMZA/RetainAI.git
+cd RetainAI
+```
+
+2. (Optionnel) Créer et activer un environnement virtuel :
+
+```bash
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# macOS / Linux
+source venv/bin/activate
+```
+
+3. Installer les dépendances :
+
+```bash
+pip install -r requirements.txt
+```
+
+4. (Optionnel) Générer des données de démonstration :
+
+```bash
+python seed_data.py
+```
+
+5. Lancer l'application :
+
+```bash
+python run.py
+```
+
+L'application sera disponible sur `http://localhost:5000`.
 
 ---
 
-## Comment présenter ce projet à un recruteur
+## Structure principale
 
-1. Contexte : expliquer le problème business (churn) et l'impact financier possible.
-2. Votre rôle : lister les tâches réalisées (ex : nettoyage, feature engineering, entraînement, déploiement minimal).
-3. Résultats : mentionner métriques (ROC-AUC / précision) si disponibles et actions produites (emails, segments).
-4. Améliorations possibles : monitoring, tests, CI/CD, déploiement dockerisé, baselines supplémentaires.
+- `app/` — application Flask (routes, blueprints, services)
+- `models/` — modèles ML et métadonnées
+- `data/` — jeux de données (ex : Telco-Customer-Churn.csv)
+- `model_generator.py` — script d'entraînement
+- `seed_data.py` — génération de données de démonstration
+- `run.py` / `app.py` — points d'entrée
+- `requirements.txt` — dépendances
+
+---
+
+## Contribution
+
+Les contributions sont bienvenues : ouvrez une issue ou une pull request. Respectez PEP8 et préférez des commits clairs et tests simples pour les nouveaux modules.
 
 ---
 
 ## Licence
 
-Ce projet est distribué sous licence MIT. Voir `LICENSE` pour détails.
+Ce projet est distribué sous licence MIT. Voir le fichier `LICENSE`.
 
 ---
 
 ## Auteur
 
-**HAMZA EL MANDOURI** — hamza.elmandouri@example.com — https://github.com/ELMANDOURIHAMZA
+HAMZA EL MANDOURI — https://github.com/ELMANDOURIHAMZA
 
 - [SQLAlchemy ORM](https://docs.sqlalchemy.org/en/20/orm/)
 - [TailwindCSS](https://tailwindcss.com/)

@@ -22,232 +22,78 @@
 - [Architecture Technique](#-architecture-technique)
 - [Utilisation](#-utilisation)
 - [Structure du Projet](#-structure-du-projet)
-- [API Documentation](#-api-documentation)
-- [Modèles ML](#-modèles-ml)
-- [Contribution](#-contribution)
-└── .gitignore                  # Fichiers à ignorer Git
-```
+## RetainAI — Récapitulatif Professionnel
+
+**Auteur :** HAMZA EL MANDOURI
 
 ---
 
-## 🤝 Contribution
-│   │
-│   └── templates/               # Fichiers Jinja2
-│       ├── layouts/
-│       │   └── base.html        # Template de base (header, nav, footer)
-│       ├── auth/
-│       │   ├── login.html
-│       │   ├── register.html
-│       │   ├── forgot_password.html
-│       │   └── reset_password.html
-│       └── dashboard/
-│           ├── index.html       # Dashboard principal
-│           ├── clients.html     # Liste clients avec scores
-│           ├── models.html      # Performance ML
-│           ├── campaigns.html   # Gestion campagnes
-│           ├── survival.html    # Analyse de survie
-│           ├── connectors.html  # Connecteurs données
-│           ├── mlops.html       # Monitoring modèle
-│           ├── settings.html    # Préférences utilisateur
-│           ├── profile.html     # Profil utilisateur
-│           └── partials/        # Composants réutilisables (notifications, etc.)
-│
-├── models/                      # Modèles ML entraînés
-│   ├── model_metadata.json      # Métadonnées (version, date, scores)
-│   └── model.pkl               # Modèle Random Forest sérialisé
-│
-├── data/                        # Données brutes
-│   └── Telco-Customer-Churn.csv # Dataset d'entraînement
-│
-├── config.py                    # Configuration (Dev, Prod, Test)
-├── run.py                       # Point d'entrée principal
-├── app.py                       # Fichier principal Flask
-├── seed_data.py                 # Génération données de démo
-├── model_generator.py           # Script entraînement modèle
-├── trigger_training.py          # API pour réentraînement
-├── list_models.py              # Utilitaire lister modèles
-├── requirements.txt            # Dépendances Python
-└── .gitignore                  # Fichiers à ignorer Git
-```
+## Résumé (pour recruteurs)
+
+RetainAI est une application web full-stack développée en Python/Flask, conçue pour aider les entreprises à identifier les clients à risque de churn et à piloter des actions de rétention. Le projet montre des compétences en :
+
+- Développement backend (API et architecture Flask)
+- Intégration de pipelines ML simples (préprocessing, entraînement, sérialisation)
+- Conception d'interfaces et visualisations (Jinja2, Chart.js)
+- Pratiques de MLOps et gestion de modèles
+- Gestion de projet et documentation technique
+
+Ce repository est un bon exemple pour un profil de Data Analyst / Junior Python Developer cherchant à démontrer capacité à produire une solution complète de bout en bout.
 
 ---
 
-## 🔗 API Documentation
+## Points forts à mettre en avant dans un CV / entretien
 
-### Authentification
-
-#### Login
-```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "admin@retainai.com",
-  "password": "admin"
-}
-
-Response 200:
-{
-  "message": "Login successful",
-  "user_id": 1,
-  "email": "admin@retainai.com"
-}
-```
-
-#### Register
-```http
-POST /auth/register
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "secure_password",
-  "confirm_password": "secure_password"
-}
-```
-
-### Dashboard
-
-#### Récupérer les KPIs
-```http
-GET /dashboard/kpis
-
-Response 200:
-{
-  "total_clients": 7043,
-  "churn_rate": 26.5,
-  "at_risk_count": 1837,
-  "avg_churn_score": 42.3,
-  "lifetime_value": 2547.89
-}
-```
-
-#### Lister les clients
-```http
-GET /dashboard/clients?sort=churn_score&order=desc&limit=50
-
-Response 200:
-{
-  "clients": [
-    {
-      "id": 123,
-      "name": "John Doe",
-      "email": "john@example.com",
-      "churn_score": 0.87,
-      "lifetime_value": 1250.50,
-      "contract_type": "month-to-month"
-    }
-  ],
-  "total": 7043
-}
-```
-
-### Campagnes
-
-#### Créer une campagne
-```http
-POST /dashboard/campaigns
-Content-Type: application/json
-
-{
-  "name": "Retention Q4 2024",
-  "segment_filter": {"churn_score_min": 0.7},
-  "email_template": "retention_v1",
-  "scheduled_at": "2024-12-15T10:00:00"
-}
-```
+- Architecture claire et découplée (`app/`, `services/`, `models/`).
+- Pipeline de données et modèle Random Forest reproductible.
+- Visualisations interactives dans le dashboard pour KPI et segmentation.
+- Utilisation de bonnes pratiques : modularité, fichiers de configuration et scripts utilitaires.
+- Livraison prête à être dockerisée ou déployée sur un PaaS.
 
 ---
 
-## 🤖 Modèles ML
+## Stack technique
 
-### Pipeline d'Entraînement
-
-```
-1. Ingestion (CSV)
-   ↓
-2. Nettoyage & Preprocessing
-   - Imputations valeurs manquantes
-   - Encodage variables catégoriques
-   - Normalisation features numériques
-   ↓
-3. Feature Engineering
-   - Dérivation nouvelles variables
-   - Sélection features (SelectKBest)
-   ↓
-4. Entraînement modèles
-   - Random Forest (modèle principal)
-   - Logistic Regression (baseline)
-   - Evaluation K-Fold cross-validation
-   ↓
-5. Tuning Hyperparamètres
-   - GridSearchCV
-   ↓
-6. Évaluation finale
-   - Confusion Matrix
-   - ROC-AUC, Precision-Recall
-   - Calibration courbes
-   ↓
-7. Sauvegarde (pickle)
-```
-
-### Performances Actuelles
-
-| Métrique | Valeur |
-|----------|--------|
-| Accuracy | 81.4% |
-| ROC-AUC | 0.845 |
-| Precision (Churn) | 0.743 |
-| Recall (Churn) | 0.692 |
-| F1-Score | 0.716 |
-
-### Features Principales
-
-1. **Tenure** : Ancienneté client (mois)
-2. **Monthly Charges** : Frais mensuels
-3. **Total Charges** : Total dépensé
-4. **Contract Type** : Type contrat (mois, 1an, 2ans)
-5. **Internet Service** : Service internet (DSL, Fiber, None)
-6. **Online Security** : Service sécurité online
-7. **Tech Support** : Support technique
-8. **Streaming Services** : Services streaming
-
-### Réentraîner le Modèle
-
-```bash
-# Réentraîner localement
-python model_generator.py
-
-# Via API
-curl -X POST http://localhost:5000/api/trigger-training \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
+- Langage : Python 3.9+
+- Framework : Flask
+- Data : Pandas, NumPy, scikit-learn
+- DB : SQLite (dev) / PostgreSQL (prod)
+- Frontend : Jinja2, TailwindCSS, Chart.js, Alpine.js
+- Tests / Qualité : (prévoir pytest, flake8, black)
 
 ---
 
-## 🤝 Contribution
+## Fichiers & dossiers clés
 
-Les contributions sont bienvenues ! Pour contribuer :
-
-1. **Fork** le repository
-2. **Créer une branche** : `git checkout -b feature/ma-fonctionnalite`
-3. **Commit** : `git commit -m "Add feature: ..."`
-4. **Push** : `git push origin feature/ma-fonctionnalite`
-5. **Pull Request** : Décrire les changements
-
-### Standards de Code
-- Utiliser **PEP 8** pour Python
-- Ajouter des **docstrings** aux fonctions
-- Couvrir avec des **tests unitaires**
-- Formatter avec **Black**
+- `app/` — Application Flask (routes, blueprints, services)
+- `models/` — Modèles ML et métadonnées
+- `data/` — Jeu de données (ex : Telco-Customer-Churn.csv)
+- `model_generator.py` — Script d'entraînement
+- `seed_data.py` — Script pour données de démonstration
+- `run.py` / `app.py` — Entrées de l'application
+- `requirements.txt` — Dépendances
 
 ---
 
-## 📚 Ressources & Documentation
+## Comment présenter ce projet à un recruteur
 
-- [Flask Documentation](https://flask.palletsprojects.com/)
-- [scikit-learn User Guide](https://scikit-learn.org/stable/user_guide.html)
-- [pandas Documentation](https://pandas.pydata.org/docs/)
+1. Contexte : expliquer le problème business (churn) et l'impact financier possible.
+2. Votre rôle : lister les tâches réalisées (ex : nettoyage, feature engineering, entraînement, déploiement minimal).
+3. Résultats : mentionner métriques (ROC-AUC / précision) si disponibles et actions produites (emails, segments).
+4. Améliorations possibles : monitoring, tests, CI/CD, déploiement dockerisé, baselines supplémentaires.
+
+---
+
+## Licence
+
+Ce projet est distribué sous licence MIT. Voir `LICENSE` pour détails.
+
+---
+
+## Auteur
+
+**HAMZA EL MANDOURI** — hamza.elmandouri@example.com — https://github.com/ELMANDOURIHAMZA
+
 - [SQLAlchemy ORM](https://docs.sqlalchemy.org/en/20/orm/)
 - [TailwindCSS](https://tailwindcss.com/)
 

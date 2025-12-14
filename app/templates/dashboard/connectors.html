@@ -1,0 +1,146 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div>
+        <h2 class="text-2xl font-bold text-slate-900">Data Connectors (ETL)</h2>
+        <p class="text-slate-500">Gérez vos sources de données et surveillez les pipelines d'ingestion.</p>
+    </div>
+
+    <!-- Connectors Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- CSV Local -->
+        <div
+            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition group">
+            <div class="flex justify-between items-start mb-4">
+                <div
+                    class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl group-hover:scale-110 transition">
+                    <i class="fas fa-file-csv"></i>
+                </div>
+                <div
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Actif
+                </div>
+            </div>
+            <h3 class="font-bold text-slate-900 mb-1">Fichier CSV Local</h3>
+            <p class="text-xs text-slate-500 mb-6">Import manuel ou dossier surveillé.</p>
+            <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center text-xs">
+                <span class="text-slate-400">Sync: 2 min</span>
+                <button class="text-indigo-600 font-medium hover:underline">Configurer</button>
+            </div>
+        </div>
+
+        <!-- SQL Server -->
+        <div
+            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition group">
+            <div class="flex justify-between items-start mb-4">
+                <div
+                    class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-2xl group-hover:scale-110 transition">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Connecté
+                </div>
+            </div>
+            <h3 class="font-bold text-slate-900 mb-1">SQL Server</h3>
+            <p class="text-xs text-slate-500 mb-6">Base de données principale ERP.</p>
+            <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center text-xs">
+                <span class="text-slate-400">Sync: 1h</span>
+                <button class="text-indigo-600 font-medium hover:underline">Configurer</button>
+            </div>
+        </div>
+
+        <!-- Salesforce -->
+        <div
+            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition group border-l-4 border-l-rose-500">
+            <div class="flex justify-between items-start mb-4">
+                <div
+                    class="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 text-2xl group-hover:scale-110 transition">
+                    <i class="fab fa-salesforce"></i>
+                </div>
+                <div
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-100">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Erreur
+                </div>
+            </div>
+            <h3 class="font-bold text-slate-900 mb-1">Salesforce CRM</h3>
+            <p class="text-xs text-slate-500 mb-6">Données clients et opportunités.</p>
+            <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center text-xs">
+                <button
+                    class="w-full py-1.5 bg-rose-50 text-rose-600 rounded-lg font-medium hover:bg-rose-100 transition text-center">Reconnecter</button>
+            </div>
+        </div>
+
+        <!-- Google Analytics -->
+        <div
+            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition group opacity-75 grayscale hover:grayscale-0 hover:opacity-100">
+            <div class="flex justify-between items-start mb-4">
+                <div
+                    class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 text-2xl group-hover:scale-110 transition">
+                    <i class="fab fa-google"></i>
+                </div>
+                <div
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 text-slate-500 text-xs font-bold border border-gray-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Inactif
+                </div>
+            </div>
+            <h3 class="font-bold text-slate-900 mb-1">Google Analytics</h3>
+            <p class="text-xs text-slate-500 mb-6">Comportement web et trafic.</p>
+            <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center text-xs">
+                <button class="text-indigo-600 font-medium hover:underline">Activer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Console -->
+    <div class="bg-slate-900 rounded-xl overflow-hidden shadow-lg border border-slate-800 font-mono text-sm">
+        <div class="bg-slate-800 px-4 py-2 flex items-center gap-2 border-b border-slate-700">
+            <div class="flex gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+            </div>
+            <span class="text-slate-400 text-xs ml-2">ETL Pipeline Logs</span>
+        </div>
+        <div class="p-4 h-48 overflow-y-auto text-slate-300 space-y-1">
+            <div class="flex gap-3">
+                <span class="text-slate-500">[10:42:15]</span>
+                <span class="text-emerald-400">INFO</span>
+                <span>Starting batch ingestion job #8921...</span>
+            </div>
+            <div class="flex gap-3">
+                <span class="text-slate-500">[10:42:16]</span>
+                <span class="text-emerald-400">INFO</span>
+                <span>Connecting to SQL Server (192.168.1.45)... OK</span>
+            </div>
+            <div class="flex gap-3">
+                <span class="text-slate-500">[10:42:18]</span>
+                <span class="text-emerald-400">INFO</span>
+                <span>Fetching incremental data from 'customers' table...</span>
+            </div>
+            <div class="flex gap-3">
+                <span class="text-slate-500">[10:42:22]</span>
+                <span class="text-emerald-400">INFO</span>
+                <span>7043 rows imported successfully.</span>
+            </div>
+            <div class="flex gap-3">
+                <span class="text-slate-500">[10:42:23]</span>
+                <span class="text-amber-400">WARN</span>
+                <span>Salesforce API rate limit approaching (85%).</span>
+            </div>
+            <div class="flex gap-3">
+                <span class="text-slate-500">[10:42:25]</span>
+                <span class="text-rose-400">ERROR</span>
+                <span>Failed to sync object 'Opportunities': Connection timeout.</span>
+            </div>
+            <div class="flex gap-3 animate-pulse">
+                <span class="text-slate-500">[10:42:30]</span>
+                <span class="text-blue-400">DEBUG</span>
+                <span>Waiting for next schedule trigger...</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

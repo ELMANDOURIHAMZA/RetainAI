@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Prédiction{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 30px;">
+    <div class="chart-header">
+        <div class="chart-title">Entraînement du Modèle</div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <p style="color: var(--text-muted);">Entraîner le modèle XGBoost sur les données actuelles pour mettre à jour
+            les prédictions.</p>
+        <button id="train-btn" class="btn btn-primary">
+            <i class="fas fa-sync-alt"></i> Lancer l'entraînement
+        </button>
+    </div>
+    <div id="train-result" style="margin-top: 15px;"></div>
+</div>
+
+<div class="card">
+    <div class="chart-header">
+        <div class="chart-title">Prédire sur de nouveaux clients</div>
+    </div>
+    <form id="predict-form" style="display: flex; gap: 20px; align-items: flex-start;">
+        <div style="flex: 1;">
+            <input type="file" name="file" accept=".csv" required style="padding: 12px;">
+            <small style="color: var(--text-muted);">Format attendu: CSV avec colonnes Telco standard.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search"></i> Analyser
+        </button>
+    </form>
+</div>
+
+<div id="results-area" style="margin-top: 30px; display: none;">
+    <div class="card">
+        <div class="chart-header">
+            <div class="chart-title">Résultats de l'analyse</div>
+            <button class="btn" style="background: var(--success-light); color: var(--success);">
+                <i class="fas fa-download"></i> Exporter
+            </button>
+        </div>
+        <div class="table-container">
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>ID Client</th>
+                        <th>Probabilité Churn</th>
+                        <th>Niveau de Risque</th>
+                        <th>Type de Contrat</th>
+                        <th>Charges Mensuelles</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('train-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('train-btn');
+        const resultDiv = document.getElementById('train-result');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entraînement...';
+        resultDiv.innerHTML = '';
+
+        try {
+            const response = await fetch('/train', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                resultDiv.innerHTML = `<div class="badge badge-success">Succès ! ROC-AUC: ${data.auc.toFixed(4)}</div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="badge badge-danger">Erreur: ${data.error}</div>`;
+            }
+        } catch (e) {
+            resultDiv.innerHTML = `<div class="badge badge-danger">Erreur réseau</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Lancer l\'entraînement';
+        }
+    });
+
+    document.getElementById('predict-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const resultsArea = document.getElementById('results-area');
+        const tbody = document.querySelector('#results-table tbody');
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                tbody.innerHTML = '';
+                data.data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    const prob = (row.Churn_Probability * 100).toFixed(1);
+
+                    let badgeClass = 'badge-success';
+                    let riskText = 'Faible';
+                    if (prob > 70) { badgeClass = 'badge-danger'; riskText = 'Élevé'; }
+                    else if (prob > 30) { badgeClass = 'badge-warning'; riskText = 'Moyen'; }
+
+                    tr.innerHTML = `
+                    <td style="font-weight: 600;">${row.customerID || '#'}</td>
+                    <td>${prob}%</td>
+                    <td><span class="badge ${badgeClass}">${riskText}</span></td>
+                    <td>${row.Contract}</td>
+                    <td>$${row.MonthlyCharges}</td>
+                `;
+                    tbody.appendChild(tr);
+                });
+                resultsArea.style.display = 'block';
+                resultsArea.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('Erreur: ' + data.error);
+            }
+        } catch (e) {
+            alert('Erreur réseau');
+        }
+    });
+</script>
+{% endblock %}

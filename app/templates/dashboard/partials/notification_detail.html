@@ -1,0 +1,22 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+
+    <div
+        class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 transform transition-all scale-100 p-6">
+        <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-bold text-slate-900">{{ notification.title }}</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="prose text-slate-600 text-sm mb-6">
+            {{ notification.message }}
+        </div>
+
+        <div class="flex justify-end">
+            <button onclick="closeModal()"
+                class="bg-gray-100 hover:bg-gray-200 text-slate-900 px-4 py-2 rounded-lg text-sm font-medium transition">Fermer</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Rétention{% endblock %}
+
+{% block content %}
+<h1>Assistant de Rétention</h1>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <div class="card">
+        <h3>Configuration</h3>
+        <div class="form-group">
+            <label>Clé API OpenAI</label>
+            <input type="password" id="api-key" placeholder="sk-...">
+        </div>
+
+        <div class="form-group">
+            <label>Nom du Client</label>
+            <input type="text" id="customer-name" value="M. Dupont">
+        </div>
+
+        <div class="form-group">
+            <label>Facteurs de Risque (Sélection multiple)</label>
+            <select id="reasons" multiple style="height: 150px;">
+                <option value="Contrat mois par mois">Contrat mois par mois</option>
+                <option value="Facture élevée">Facture élevée</option>
+                <option value="Service Fibre instable">Service Fibre instable</option>
+                <option value="Pas de support technique">Pas de support technique</option>
+                <option value="Ancienneté faible">Ancienneté faible</option>
+                <option value="Concurrent moins cher">Concurrent moins cher</option>
+            </select>
+            <small>Maintenez Ctrl pour sélectionner plusieurs options</small>
+        </div>
+
+        <button id="generate-btn" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+            <i class="fas fa-magic"></i> Générer l'Email
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>Email Généré</h3>
+        <div id="email-result"
+            style="white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; min-height: 300px; border: 1px solid #eee;">
+            L'email généré apparaîtra ici...
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('generate-btn').addEventListener('click', async () => {
+        const apiKey = document.getElementById('api-key').value;
+        const name = document.getElementById('customer-name').value;
+        const select = document.getElementById('reasons');
+        const reasons = Array.from(select.selectedOptions).map(opt => opt.value);
+
+        if (!apiKey) {
+            alert('Veuillez entrer une clé API OpenAI');
+            return;
+        }
+
+        const btn = document.getElementById('generate-btn');
+        const resultDiv = document.getElementById('email-result');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rédaction...';
+
+        try {
+            const response = await fetch('/retention', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    api_key: apiKey,
+                    name: name,
+                    reasons: reasons
+                })
+            });
+
+            const data = await response.json();
+            resultDiv.textContent = data.email;
+
+        } catch (e) {
+            resultDiv.textContent = 'Erreur lors de la génération.';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Générer l\'Email';
+        }
+    });
+</script>
+{% endblock %}

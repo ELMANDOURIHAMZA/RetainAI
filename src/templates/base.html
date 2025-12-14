@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChurnGuard AI - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="brand">
+                <i class="fas fa-shield-alt"></i>
+                <span>ChurnGuard</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="{{ 'active' if request.path == '/' else '' }}"><i class="fas fa-home"></i>
+                        Dashboard</a></li>
+                <li><a href="/predict" class="{{ 'active' if request.path == '/predict' else '' }}"><i
+                            class="fas fa-chart-pie"></i> Prédiction</a></li>
+                <li><a href="/explain" class="{{ 'active' if request.path == '/explain' else '' }}"><i
+                            class="fas fa-search"></i> Explicabilité</a></li>
+                <li><a href="/retention" class="{{ 'active' if request.path == '/retention' else '' }}"><i
+                            class="fas fa-envelope"></i> Rétention</a></li>
+            </ul>
+        </nav>
+
+        <div class="main-wrapper">
+            <header class="top-header">
+                <div class="page-title">{{ self.title() }}</div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Rechercher...">
+                    </div>
+                    <div class="icon-btn">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="icon-btn">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="profile-pic"></div>
+                </div>
+            </header>
+
+            <main class="content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>

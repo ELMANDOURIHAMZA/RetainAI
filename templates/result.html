@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4 mb-4">
+            <h3 class="mb-3">Résultat de l'Analyse</h3>
+
+            <div class="row align-items-center mb-4">
+                <div class="col-md-6 text-center">
+                    <h1 class="display-1 fw-bold {{ 'risk-high' if prob > 50 else 'risk-low' }}">
+                        {{ prob }}%
+                    </h1>
+                    <p class="lead">Probabilité de Churn</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-muted">Explication IA :</h5>
+                    <p class="fs-5">{{ explanation }}</p>
+                </div>
+            </div>
+
+            <hr>
+
+            <h4 class="mb-3 mt-4">Action Recommandée : Email de Rétention</h4>
+            <p class="text-muted">Brouillon généré automatiquement pour ce profil.</p>
+
+            <div class="email-box mb-3">
+                {{ email }}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-outline-secondary" onclick="window.location.href='/predict'">Nouvelle
+                    Analyse</button>
+                <button class="btn btn-primary">Envoyer l'Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

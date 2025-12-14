@@ -1,0 +1,286 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <!-- Total Clients -->
+    <div
+        class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+        <div
+            class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110">
+        </div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <i class="fas fa-users"></i>
+                </div>
+                <span class="text-slate-500 font-medium text-sm">Clients Totaux</span>
+            </div>
+            <h3 class="text-3xl font-bold text-slate-900">{{ kpis.total }}</h3>
+            <p class="text-emerald-500 text-sm mt-2 flex items-center gap-1">
+                <i class="fas fa-arrow-up"></i> +12% <span class="text-slate-400 ml-1">vs mois dernier</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Churn Risk -->
+    <div
+        class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+        <div
+            class="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110">
+        </div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <span class="text-slate-500 font-medium text-sm">À Risque Élevé</span>
+            </div>
+            <h3 class="text-3xl font-bold text-slate-900">{{ kpis.risk }}</h3>
+            <p class="text-rose-500 text-sm mt-2 flex items-center gap-1">
+                <i class="fas fa-arrow-up"></i> +5% <span class="text-slate-400 ml-1">vs mois dernier</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Avg Churn Rate -->
+    <div
+        class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+        <div
+            class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110">
+        </div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span class="text-slate-500 font-medium text-sm">Taux de Churn Moyen</span>
+            </div>
+            <h3 class="text-3xl font-bold text-slate-900">{{ kpis.avg_risk }}%</h3>
+            <p class="text-emerald-500 text-sm mt-2 flex items-center gap-1">
+                <i class="fas fa-arrow-down"></i> -2.1% <span class="text-slate-400 ml-1">vs mois dernier</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Customer Table -->
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-slate-900">Clients Récents</h3>
+            <div class="flex gap-2">
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open"
+                        class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-slate-600 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-gray-200">
+                        <i class="fas fa-filter text-slate-400"></i>
+                        {% if filter_status == 'churned' %}Risque Élevé
+                        {% elif filter_status == 'active' %}Actifs
+                        {% else %}Tous les status
+                        {% endif %}
+                        <i class="fas fa-chevron-down text-xs ml-1"></i>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-cloak
+                        class="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-10">
+                        <a href="{{ url_for('dashboard.index', status='all') }}"
+                            class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">Tous</a>
+                        <a href="{{ url_for('dashboard.index', status='churned') }}"
+                            class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">Risque
+                            Élevé</a>
+                        <a href="{{ url_for('dashboard.index', status='active') }}"
+                            class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">Actifs</a>
+                    </div>
+                </div>
+                <a href="/clients"
+                    class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-sm font-medium transition">
+                    Voir Tout
+                </a>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100 text-xs uppercase tracking-wider text-slate-500">
+                        <th class="p-4 font-semibold">Client</th>
+                        <th class="p-4 font-semibold">Contrat</th>
+                        <th class="p-4 font-semibold">Mensualité</th>
+                        <th class="p-4 font-semibold">Risque</th>
+                        <th class="p-4 font-semibold text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for customer in pagination.items %}
+                    <tr class="hover:bg-gray-50/50 transition group">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                    {{ customer.external_id[:2] }}
+                                </div>
+                                <div>
+                                    <div class="font-medium text-slate-900">{{ customer.external_id }}</div>
+                                    <div class="text-xs text-slate-500">Tenure: {{ customer.subscription.tenure }} mois
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4 text-sm text-slate-600">{{ customer.subscription.contract }}</td>
+                        <td class="p-4 text-sm text-slate-900 font-medium">${{ customer.subscription.monthly_charges }}
+                        </td>
+                        <td class="p-4">
+                            {% if customer.churn_label %}
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-600 border border-rose-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Élevé
+                            </span>
+                            {% else %}
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Faible
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-right">
+                            <button hx-get="/retention/preview/{{ customer.id }}" hx-target="#modal-container"
+                                hx-swap="innerHTML"
+                                class="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 p-2 rounded-lg transition">
+                                <i class="fas fa-magic"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="p-4 border-t border-gray-100 flex justify-between items-center">
+            <span class="text-sm text-slate-500">Page {{ pagination.page }} sur {{ pagination.pages }}</span>
+            <div class="flex gap-2">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('dashboard.index', page=pagination.prev_num, status=filter_status) }}"
+                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-slate-600 hover:bg-gray-50 text-sm transition">Précédent</a>
+                {% else %}
+                <span
+                    class="px-3 py-1.5 border border-gray-100 rounded-lg text-slate-300 text-sm cursor-not-allowed">Précédent</span>
+                {% endif %}
+
+                {% if pagination.has_next %}
+                <a href="{{ url_for('dashboard.index', page=pagination.next_num, status=filter_status) }}"
+                    class="px-3 py-1.5 border border-gray-200 rounded-lg text-slate-600 hover:bg-gray-50 text-sm transition">Suivant</a>
+                {% else %}
+                <span
+                    class="px-3 py-1.5 border border-gray-100 rounded-lg text-slate-300 text-sm cursor-not-allowed">Suivant</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: AI & Actions -->
+    <div class="space-y-6">
+        <!-- AI Insight Card -->
+        <div
+            class="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-6 shadow-lg text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                        <i class="fas fa-robot text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">RetainAI Insight</h3>
+                </div>
+                <p class="text-indigo-100 text-sm mb-6 leading-relaxed">
+                    L'analyse prédictive a identifié <span class="font-bold text-white">12 clients</span> à risque
+                    critique cette semaine. Les principaux facteurs sont les contrats mensuels et le support technique.
+                </p>
+                <button id="refresh-ai-btn" onclick="refreshAI()"
+                    class="w-full bg-white text-indigo-600 py-3 rounded-xl font-bold text-sm hover:bg-indigo-50 transition shadow-lg shadow-black/10 flex items-center justify-center gap-2">
+                    <i class="fas fa-sync-alt"></i> Actualiser l'Analyse
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h3 class="font-bold text-lg text-slate-900 mb-4">Actions Rapides</h3>
+            <div class="space-y-3">
+                <a href="/api/export/report"
+                    class="w-full text-left p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition flex items-center gap-3 group">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <span class="text-slate-600 font-medium text-sm">Exporter le rapport</span>
+                </a>
+                <button id="btn-campaign" onclick="startCampaign()"
+                    class="w-full text-left p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition flex items-center gap-3 group">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <span class="text-slate-600 font-medium text-sm">Campagne Email</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function refreshAI() {
+        const btn = document.getElementById('refresh-ai-btn');
+        const icon = btn.querySelector('i');
+
+        // Loading state
+        icon.classList.add('fa-spin');
+        btn.disabled = true;
+        btn.classList.add('opacity-75');
+
+        try {
+            const response = await fetch('/api/refresh-ai', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Success state
+                showToast('Analyse IA mise à jour avec succès', 'success');
+            } else {
+                showToast('Erreur lors de la mise à jour', 'error');
+            }
+        } catch (error) {
+            showToast('Erreur de connexion', 'error');
+        } finally {
+            // Reset state
+            icon.classList.remove('fa-spin');
+            btn.disabled = false;
+            btn.classList.remove('opacity-75');
+        }
+    }
+
+    async function startCampaign() {
+        const btn = document.getElementById('btn-campaign');
+        const icon = btn.querySelector('i');
+        const originalClass = icon.className;
+
+        icon.className = 'fas fa-spinner fa-spin text-blue-600';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/campaign/start', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+            } else {
+                showToast('Erreur lors de l\'envoi', 'error');
+            }
+        } catch (error) {
+            showToast('Erreur de connexion', 'error');
+        } finally {
+            icon.className = originalClass;
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

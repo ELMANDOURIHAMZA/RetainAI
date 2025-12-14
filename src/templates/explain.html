@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Explicabilité{% endblock %}
+
+{% block content %}
+<h1>Explicabilité (SHAP)</h1>
+
+<div class="card">
+    <label>Sélectionner un client pour analyser les causes du risque :</label>
+    <select id="customer-select" style="max-width: 300px;">
+        <option value="">-- Choisir un client --</option>
+        {% for c in customers %}
+        <option value="{{ c.index }}">Client {{ c.customerID }} ({{ c.Churn }})</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div id="explanation-area" style="margin-top: 30px; display: none;">
+    <div class="chart-container">
+        <h3>Facteurs d'influence (SHAP Values)</h3>
+        <div id="shap-plot"></div>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <i class="fas fa-info-circle"></i>
+            Les barres rouges augmentent le risque de départ, les bleues le diminuent.
+        </p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('customer-select').addEventListener('change', async (e) => {
+        const idx = e.target.value;
+        if (!idx) return;
+
+        const area = document.getElementById('explanation-area');
+
+        try {
+            const response = await fetch(`/api/explain/${idx}`);
+            const data = await response.json();
+
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            area.style.display = 'block';
+
+            // Simple Bar Chart for SHAP
+            // Sort by absolute value
+            const features = data.feature_names;
+            const values = data.values;
+
+            // Combine and sort
+            const combined = features.map((f, i) => ({ name: f, value: values[i] }));
+            combined.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+            const top10 = combined.slice(0, 10).reverse(); // Top 10
+
+            const trace = {
+                x: top10.map(d => d.value),
+                y: top10.map(d => d.name),
+                type: 'bar',
+                orientation: 'h',
+                marker: {
+                    color: top10.map(d => d.value > 0 ? '#FF5252' : '#2196F3')
+                }
+            };
+
+            const layout = {
+                title: 'Top 10 Facteurs Impactants',
+                margin: { l: 150 }
+            };
+
+            Plotly.newPlot('shap-plot', [trace], layout);
+
+        } catch (e) {
+            console.error(e);
+            alert('Erreur lors de la récupération des explications');
+        }
+    });
+</script>
+{% endblock %}

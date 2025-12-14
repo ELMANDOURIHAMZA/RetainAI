@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="card stat-card">
+        <div class="stat-icon-wrapper" style="background-color: var(--primary-light); color: var(--primary);">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Taux d'Attrition</div>
+            <div class="stat-value">{{ stats.churn_rate }}%</div>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon-wrapper" style="background-color: var(--warning-light); color: var(--warning);">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Revenu Moyen</div>
+            <div class="stat-value">${{ stats.avg_charges }}</div>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon-wrapper" style="background-color: var(--success-light); color: var(--success);">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Clients Totaux</div>
+            <div class="stat-value">{{ stats.total_customers }}</div>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon-wrapper" style="background-color: var(--danger-light); color: var(--danger);">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Clients à Risque</div>
+            <div class="stat-value" style="color: var(--danger)">{{ stats.risk_count }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="card">
+        <div class="chart-header">
+            <div class="chart-title">Répartition du Churn</div>
+        </div>
+        <div id="churn-dist" style="height: 300px;"></div>
+    </div>
+    <div class="card">
+        <div class="chart-header">
+            <div class="chart-title">Churn par Contrat</div>
+        </div>
+        <div id="contract-dist" style="height: 300px;"></div>
+    </div>
+</div>
+
+<script>
+    var graphs = {{ graphs | tojson | safe }};
+
+    const commonLayout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: {
+            family: 'Inter, sans-serif',
+            color: '#718EBF'
+        },
+        margin: { t: 0, l: 40, r: 20, b: 40 },
+        showlegend: true,
+        legend: { orientation: 'h', y: -0.2 }
+    };
+
+    if (graphs.churn_dist) {
+        var churnData = JSON.parse(graphs.churn_dist);
+        var layout = { ...churnData.layout, ...commonLayout };
+        Plotly.newPlot('churn-dist', churnData.data, layout, { displayModeBar: false });
+    }
+    if (graphs.contract) {
+        var contractData = JSON.parse(graphs.contract);
+        var layout = { ...contractData.layout, ...commonLayout };
+        Plotly.newPlot('contract-dist', contractData.data, layout, { displayModeBar: false });
+    }
+</script>
+{% endblock %}

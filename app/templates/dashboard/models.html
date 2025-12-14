@@ -1,0 +1,119 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Model Status Card -->
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-slate-900">État du Modèle</h3>
+                <p class="text-slate-500 text-sm">Random Forest Classifier v2.1</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <span class="text-slate-500">Statut</span>
+                <span
+                    class="text-emerald-600 font-medium bg-emerald-50 px-3 py-1 rounded-full text-sm border border-emerald-100">{{
+                    model.status }}</span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <span class="text-slate-500">Dernier Entraînement</span>
+                <span class="text-slate-900 font-medium">{{ model.last_trained }}</span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <span class="text-slate-500">Précision (Accuracy)</span>
+                <span class="text-slate-900 font-bold">{{ model.accuracy }}</span>
+            </div>
+        </div>
+
+        <button id="train-btn" onclick="trainModel()"
+            class="w-full mt-8 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+            <i class="fas fa-sync-alt"></i> Ré-entraîner le Modèle
+        </button>
+    </div>
+
+    <!-- Feature Importance -->
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+        <h3 class="text-xl font-bold text-slate-900 mb-6">Facteurs d'Influence (SHAP)</h3>
+        <div class="space-y-6">
+            <div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-slate-600 text-sm">Type de Contrat (Month-to-month)</span>
+                    <span class="text-rose-500 text-sm font-bold">+45% Risque</span>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-rose-500 w-[85%]"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-slate-600 text-sm">Absence de TechSupport</span>
+                    <span class="text-rose-500 text-sm font-bold">+30% Risque</span>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-rose-500 w-[60%]"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-slate-600 text-sm">Fibre Optique</span>
+                    <span class="text-amber-500 text-sm font-bold">+15% Risque</span>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-amber-500 w-[30%]"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-slate-600 text-sm">Ancienneté > 2 ans</span>
+                    <span class="text-emerald-500 text-sm font-bold">-25% Risque</span>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 w-[40%]"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function trainModel() {
+        const btn = document.getElementById('train-btn');
+        const originalContent = btn.innerHTML;
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entraînement en cours...';
+        btn.disabled = true;
+        btn.classList.add('opacity-75');
+
+        try {
+            const response = await fetch('/api/train', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                btn.innerHTML = '<i class="fas fa-check"></i> Terminé !';
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75');
+                }, 2000);
+            } else {
+                showToast(data.message, 'error');
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+            }
+        } catch (error) {
+            showToast('Erreur de connexion', 'error');
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+            btn.classList.remove('opacity-75');
+        }
+    }
+</script>
+{% endblock %}

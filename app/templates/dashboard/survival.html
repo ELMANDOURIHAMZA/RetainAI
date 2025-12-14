@@ -1,0 +1,143 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div>
+        <h2 class="text-2xl font-bold text-slate-900">Analyse de Survie</h2>
+        <p class="text-slate-500">Comprenez le cycle de vie de vos clients et identifiez les moments critiques de
+            désabonnement.</p>
+    </div>
+
+    <!-- Main Chart Card -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-slate-900">Courbe de Kaplan-Meier (Rétention)</h3>
+            <div class="flex gap-2">
+                <span class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                    <span class="w-3 h-3 rounded-full bg-indigo-500"></span> Fibre
+                </span>
+                <span class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                    <span class="w-3 h-3 rounded-full bg-rose-500"></span> ADSL
+                </span>
+            </div>
+        </div>
+
+        <div class="relative h-96 w-full">
+            <canvas id="survivalChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6">
+            <div class="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-2xl">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div>
+                <div class="text-sm text-slate-500 font-medium uppercase tracking-wide">CLV Estimée</div>
+                <div class="text-3xl font-bold text-slate-900">${{ metrics.clv }}</div>
+                <div class="text-xs text-emerald-600 mt-1"><i class="fas fa-arrow-up"></i> +12% vs année dernière</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6">
+            <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 text-2xl">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+            <div>
+                <div class="text-sm text-slate-500 font-medium uppercase tracking-wide">Mois Critique</div>
+                <div class="text-3xl font-bold text-slate-900">Mois {{ metrics.critical_month }}</div>
+                <div class="text-xs text-slate-500 mt-1">Pic de désabonnement historique</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('survivalChart').getContext('2d');
+    const data = {{ data | tojson }};
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [
+                {
+                    label: 'Clients Fibre',
+                    data: data.fiber,
+                    borderColor: '#6366f1', // Indigo 500
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.1, // Stepped look
+                    stepped: true,
+                    fill: false
+                },
+                {
+                    label: 'Clients ADSL',
+                    data: data.adsl,
+                    borderColor: '#f43f5e', // Rose 500
+                    backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.1,
+                    stepped: true,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    padding: 12,
+                    titleFont: { size: 13 },
+                    bodyFont: { size: 13 },
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: '#f1f5f9',
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        callback: function (value) { return value + '%' },
+                        font: { family: "'Inter', sans-serif" }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Probabilité de Rétention'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: { family: "'Inter', sans-serif" }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Mois depuis l\'abonnement'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900">Historique des Campagnes</h2>
+            <p class="text-slate-500">Gérez vos campagnes de rétention et analysez leur performance.</p>
+        </div>
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-indigo-500/20 transition flex items-center gap-2">
+            <i class="fas fa-plus"></i> Nouvelle Campagne
+        </button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Emails Sent -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-xl">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+12%</span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1">{{ kpis.sent }}</div>
+            <div class="text-sm text-slate-500">Emails Envoyés</div>
+        </div>
+
+        <!-- Open Rate -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <div
+                    class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 text-xl">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+5%</span>
+            </div>
+            <div class="flex items-end gap-2 mb-2">
+                <div class="text-3xl font-bold text-slate-900">{{ kpis.open_rate }}%</div>
+                <div class="text-sm text-slate-500 mb-1">Taux d'ouverture</div>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="bg-purple-600 h-2 rounded-full" style="width: {{ kpis.open_rate }}%"></div>
+            </div>
+        </div>
+
+        <!-- Saved Clients -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <div
+                    class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+8%</span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1">{{ kpis.saved }}</div>
+            <div class="text-sm text-slate-500">Clients Sauvés</div>
+        </div>
+    </div>
+
+    <!-- Campaigns Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100 text-xs uppercase tracking-wider text-slate-500">
+                        <th class="p-4 font-semibold">Nom de la Campagne</th>
+                        <th class="p-4 font-semibold">Segment Visé</th>
+                        <th class="p-4 font-semibold">Canal</th>
+                        <th class="p-4 font-semibold">Statut</th>
+                        <th class="p-4 font-semibold">Date</th>
+                        <th class="p-4 font-semibold">ROI Estimé</th>
+                        <th class="p-4 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for campaign in campaigns %}
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="p-4 font-medium text-slate-900">{{ campaign.name }}</td>
+                        <td class="p-4">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-slate-600">
+                                {{ campaign.segment }}
+                            </span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2 text-slate-600 text-sm">
+                                {% if campaign.channel == 'Email' %}
+                                <i class="fas fa-envelope text-indigo-400"></i>
+                                {% elif campaign.channel == 'SMS' %}
+                                <i class="fas fa-comment-alt text-emerald-400"></i>
+                                {% else %}
+                                <i class="fas fa-bullhorn text-amber-400"></i>
+                                {% endif %}
+                                {{ campaign.channel }}
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            {% if campaign.status == 'Terminé' %}
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Terminé
+                            </span>
+                            {% elif campaign.status == 'En cours' %}
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> En cours
+                            </span>
+                            {% else %}
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-slate-500 border border-gray-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> {{ campaign.status }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-sm text-slate-500">{{ campaign.date }}</td>
+                        <td class="p-4 font-medium text-slate-900">{{ campaign.roi }}</td>
+                        <td class="p-4 text-right">
+                            <button class="text-slate-400 hover:text-indigo-600 transition">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

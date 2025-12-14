@@ -1,0 +1,18 @@
+{% for notif in notifications %}
+<div class="p-4 border-b border-slate-700/50 hover:bg-slate-700/50 cursor-pointer transition relative group"
+    hx-post="/api/notifications/{{ notif.id }}/read" hx-target="#modal-container" hx-swap="innerHTML">
+
+    <div class="flex items-start gap-3">
+        <div class="mt-1 w-2 h-2 rounded-full {{ 'bg-rose-500' if not notif.is_read else 'bg-transparent' }}"></div>
+        <div>
+            <p class="text-sm text-white font-medium {{ 'opacity-60' if notif.is_read else '' }}">{{ notif.title }}</p>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-1">{{ notif.message }}</p>
+            <p class="text-[10px] text-slate-500 mt-2">{{ notif.created_at.strftime('%d/%m %H:%M') }}</p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="p-4 text-center text-slate-500 text-sm">
+    Aucune notification.
+</div>
+{% endfor %}

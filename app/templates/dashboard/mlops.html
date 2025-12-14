@@ -1,0 +1,205 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900">Monitoring MLOps</h2>
+            <p class="text-slate-500">Surveillance de la performance du modèle et détection de dérive (Drift).</p>
+        </div>
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-indigo-500/20 transition flex items-center gap-2">
+            <i class="fas fa-sync-alt"></i> Ré-entraîner le modèle
+        </button>
+    </div>
+
+    <!-- Model Accuracy Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-bold text-slate-900 mb-6">Précision du Modèle (6 derniers mois)</h3>
+        <div class="relative h-72 w-full">
+            <canvas id="accuracyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Data Drift Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-900">Data Drift: Facture Mensuelle</h3>
+                <span
+                    class="px-2 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold border border-amber-100">
+                    Drift Détecté
+                </span>
+            </div>
+            <p class="text-sm text-slate-500 mb-6">Comparaison de la distribution des données d'entraînement vs
+                production.</p>
+            <div class="relative h-64 w-full">
+                <canvas id="driftChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Model Health Stats -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-bold text-slate-900 mb-6">Santé du Système</h3>
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between text-sm font-medium mb-2">
+                        <span class="text-slate-700">Latence d'inférence</span>
+                        <span class="text-emerald-600">45ms (Excellent)</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2">
+                        <div class="bg-emerald-500 h-2 rounded-full" style="width: 15%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm font-medium mb-2">
+                        <span class="text-slate-700">Utilisation Mémoire</span>
+                        <span class="text-slate-900">2.4 GB / 8 GB</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2">
+                        <div class="bg-indigo-500 h-2 rounded-full" style="width: 30%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm font-medium mb-2">
+                        <span class="text-slate-700">Qualité des Données</span>
+                        <span class="text-amber-600">92% (Attention requise)</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2">
+                        <div class="bg-amber-500 h-2 rounded-full" style="width: 92%"></div>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-50 grid grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-50 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-slate-900">v2.4.1</div>
+                        <div class="text-xs text-slate-500">Version Modèle</div>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-slate-900">14k</div>
+                        <div class="text-xs text-slate-500">Prédictions / Jour</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const data = {{ data | tojson }};
+
+    // Accuracy Chart
+    const ctxAcc = document.getElementById('accuracyChart').getContext('2d');
+    new Chart(ctxAcc, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [{
+                label: 'Précision (%)',
+                data: data.accuracy,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#6366f1',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: 75,
+                            yMax: 75,
+                            borderColor: 'rgb(244, 63, 94)',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            label: {
+                                content: 'Seuil d\'alerte',
+                                enabled: true,
+                                position: 'start'
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 60,
+                    max: 100,
+                    grid: { color: '#f1f5f9' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Drift Histogram (Simulated with Bar Chart)
+    // Binning the data simply for visualization
+    function createHistogram(data, bins) {
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const step = (max - min) / bins;
+        const counts = new Array(bins).fill(0);
+        const labels = [];
+
+        for (let i = 0; i < bins; i++) {
+            labels.push((min + i * step).toFixed(0));
+        }
+
+        data.forEach(v => {
+            const bin = Math.min(Math.floor((v - min) / step), bins - 1);
+            counts[bin]++;
+        });
+
+        return { labels, counts };
+    }
+
+    const histTrain = createHistogram(data.dist_train, 15);
+    const histCurrent = createHistogram(data.dist_current, 15);
+
+    const ctxDrift = document.getElementById('driftChart').getContext('2d');
+    new Chart(ctxDrift, {
+        type: 'bar',
+        data: {
+            labels: histTrain.labels,
+            datasets: [
+                {
+                    label: 'Entraînement (Ref)',
+                    data: histTrain.counts,
+                    backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Production (Actuel)',
+                    data: histCurrent.counts,
+                    backgroundColor: 'rgba(244, 63, 94, 0.5)',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { display: false },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

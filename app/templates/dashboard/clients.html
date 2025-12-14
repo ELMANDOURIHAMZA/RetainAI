@@ -1,0 +1,431 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<script>
+    // Force explicit string generation to avoid any JSON serialization issues
+    // New implementation
+    window.pageIds = {{ pagination.items | map(attribute='id') | list | tojson }}.map(String);
+
+
+
+
+</script>
+
+<div id="clients-list-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" x-data="{ 
+        selected: [], 
+        allIds: window.pageIds,
+        totalEntries: {{ total_entries }},
+        selectAllMatching: false,
+        confirmOpen: false,
+        filters: {
+            status: '{{ filter_status }}',
+            persona: '{{ filter_persona }}',
+            search_id: '{{ search_id }}',
+            q: '{{ search_global }}'
+        },
+        toggleAll() {
+            if (this.selected.length === this.allIds.length) {
+                this.selected = [];
+                this.selectAllMatching = false;
+            } else {
+                this.selected = [...this.allIds];
+            }
+        },
+        toggleSelectAllMatching() {
+            this.selectAllMatching = true;
+        }
+     }">
+    <!-- Header with Search and Filters -->
+    <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <h2 class="text-xl font-bold text-slate-900">Liste des Clients</h2>
+
+        <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <!-- Search -->
+            <form action="/clients" method="GET" class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" name="search_id" placeholder="Rechercher par ID..." value="{{ search_id }}"
+                    class="w-full md:w-64 bg-gray-50 border border-gray-200 text-sm rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-slate-900">
+                {% if filter_status != 'all' %}
+                <input type="hidden" name="status" value="{{ filter_status }}">
+                {% endif %}
+                {% if filter_persona != 'all' %}
+                <input type="hidden" name="persona" value="{{ filter_persona }}">
+                {% endif %}
+                {% if search_global %}
+                <input type="hidden" name="q" value="{{ search_global }}">
+                {% endif %}
+            </form>
+
+            <!-- Filter Persona -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="w-full md:w-auto px-4 py-2 bg-gray-50 border border-gray-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-gray-100 transition flex items-center justify-between gap-2">
+                    <span>
+                        <i class="fas fa-users text-slate-400 mr-1"></i>
+                        {% if filter_persona != 'all' %}{{ filter_persona }}{% else %}Tous les Personas{% endif %}
+                    </span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div x-show="open" @click.away="open = false" x-cloak
+                    class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-10 max-h-64 overflow-y-auto">
+                    <a href="{{ url_for('dashboard.clients', status=filter_status, persona='all', search_id=search_id, q=search_global) }}"
+                        class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">Tous</a>
+                    {% for p in personas %}
+                    <a href="{{ url_for('dashboard.clients', status=filter_status, persona=p, search_id=search_id, q=search_global) }}"
+                        class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">{{ p
+                        }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Filter Status -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="w-full md:w-auto px-4 py-2 bg-gray-50 border border-gray-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-gray-100 transition flex items-center justify-between gap-2">
+                    <span>
+                        <i class="fas fa-filter text-slate-400 mr-1"></i>
+                        {% if filter_status == 'churned' %}Risque Élevé
+                        {% elif filter_status == 'active' %}Actifs
+                        {% else %}Tous les status
+                        {% endif %}
+                    </span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div x-show="open" @click.away="open = false" x-cloak
+                    class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-10">
+                    <a href="{{ url_for('dashboard.clients', status='all', persona=filter_persona, search_id=search_id, q=search_global) }}"
+                        class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">Tous</a>
+                    <a href="{{ url_for('dashboard.clients', status='churned', persona=filter_persona, search_id=search_id, q=search_global) }}"
+                        class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">Risque
+                        Élevé</a>
+                    <a href="{{ url_for('dashboard.clients', status='active', persona=filter_persona, search_id=search_id, q=search_global) }}"
+                        class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-indigo-600">Actifs</a>
+                </div>
+            </div>
+
+            <!-- Add Client Button -->
+            <button @click="$dispatch('open-modal')"
+                class="w-full md:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                <i class="fas fa-plus"></i> Nouveau Client
+            </button>
+        </div>
+    </div>
+
+    <!-- Select All Matching Banner -->
+    <div x-show="selected.length === allIds.length && totalEntries > allIds.length && !selectAllMatching"
+        class="bg-indigo-100 p-3 text-center text-sm text-indigo-900 border-b border-indigo-200" x-cloak>
+        Tous les <span class="font-bold" x-text="selected.length"></span> clients de cette page sont sélectionnés.
+        <button @click="toggleSelectAllMatching()"
+            class="text-indigo-700 font-bold underline ml-1 hover:text-indigo-900">
+            Sélectionner les <span x-text="totalEntries"></span> clients correspondant à la recherche ?
+        </button>
+    </div>
+
+    <div x-show="selectAllMatching" class="bg-indigo-600 p-3 text-center text-sm text-white border-b border-indigo-700"
+        x-cloak>
+        Tous les <span class="font-bold" x-text="totalEntries"></span> clients correspondant à la recherche sont
+        sélectionnés.
+        <button @click="selectAllMatching = false; selected = []"
+            class="text-white underline ml-1 hover:text-indigo-100">
+            Annuler la sélection
+        </button>
+    </div>
+
+    <!-- Bulk Actions Toolbar -->
+    <div class="bg-indigo-50 p-4 flex justify-between items-center border-b border-indigo-100 transition-all duration-300"
+        :class="{'opacity-50 grayscale': selected.length === 0, 'opacity-100': selected.length > 0}">
+        <div class="flex items-center gap-2">
+            <span
+                class="w-6 h-6 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 text-xs font-bold"
+                x-text="selectAllMatching ? totalEntries : selected.length"></span>
+            <span class="text-indigo-900 font-medium text-sm">clients sélectionnés</span>
+        </div>
+        <button @click="confirmOpen = true" :disabled="selected.length === 0"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition shadow-sm flex items-center gap-2 disabled:cursor-not-allowed disabled:bg-indigo-400">
+            <i class="fas fa-paper-plane"></i> Lancer Campagne
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50/50 border-b border-gray-100 text-xs uppercase tracking-wider text-slate-500">
+                    <th class="p-4 w-4">
+                        <input type="checkbox" @change="toggleAll()"
+                            :checked="selected.length === allIds.length && allIds.length > 0"
+                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                    </th>
+                    <th class="p-4 font-semibold">ID Client</th>
+                    <th class="p-4 font-semibold">Persona</th>
+                    <th class="p-4 font-semibold">Contrat</th>
+                    <th class="p-4 font-semibold">Mensualité</th>
+                    <th class="p-4 font-semibold">Statut</th>
+                    <th class="p-4 font-semibold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for customer in pagination.items %}
+
+                <tr class="hover:bg-gray-50/50 transition group">
+                    <td class="p-4">
+                        <input type="checkbox" value="{{ customer.id }}" x-model="selected"
+                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                    </td>
+                    <td class="p-4 font-medium text-slate-900">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs border border-indigo-100">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {{ customer.external_id }}
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
+                            {{ customer.persona or 'Standard' }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm text-slate-600">
+                        <span
+                            class="px-2 py-1 rounded-md bg-gray-100 text-slate-600 text-xs font-medium border border-gray-200">
+                            {{ customer.subscription.contract }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm text-slate-900 font-medium">${{ customer.subscription.monthly_charges }}</td>
+                    <td class="p-4">
+                        {% if customer.churn_label %}
+                        <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-600 border border-rose-100">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Risque Élevé
+                        </span>
+                        {% else %}
+                        <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Actif
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-right">
+                        <button hx-get="/retention/preview/{{ customer.id }}" hx-target="#modal-container"
+                            hx-swap="innerHTML"
+                            class="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 p-2 rounded-lg transition"
+                            title="Générer Email">
+                            <i class="fas fa-magic"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50/30">
+        <span class="text-sm text-slate-500">Page {{ pagination.page }} sur {{ pagination.pages }}</span>
+        <div class="flex gap-2">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('dashboard.clients', page=pagination.prev_num, status=filter_status, persona=filter_persona, q=search_query) }}"
+                class="px-3 py-1.5 border border-gray-200 rounded-lg text-slate-600 hover:bg-white hover:shadow-sm text-sm transition">Précédent</a>
+            {% else %}
+            <span
+                class="px-3 py-1.5 border border-gray-100 rounded-lg text-slate-300 text-sm cursor-not-allowed">Précédent</span>
+            {% endif %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('dashboard.clients', page=pagination.next_num, status=filter_status, persona=filter_persona, q=search_query) }}"
+                class="px-3 py-1.5 border border-gray-200 rounded-lg text-slate-600 hover:bg-white hover:shadow-sm text-sm transition">Suivant</a>
+            {% else %}
+            <span
+                class="px-3 py-1.5 border border-gray-100 rounded-lg text-slate-300 text-sm cursor-not-allowed">Suivant</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div x-show="confirmOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true" x-cloak>
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" @click="confirmOpen = false">
+        </div>
+
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div
+                class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-gray-100 p-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div
+                        class="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Confirmer l'envoi</h3>
+                        <p class="text-sm text-slate-500">Cette action est irréversible.</p>
+                    </div>
+                </div>
+
+                <p class="text-slate-600 mb-6">
+                    Vous êtes sur le point d'envoyer une campagne de rétention à <strong
+                        x-text="selectAllMatching ? totalEntries : selected.length"></strong> clients. Voulez-vous
+                    continuer ?
+                </p>
+
+                <div class="flex justify-end gap-3">
+                    <button @click="confirmOpen = false"
+                        class="px-4 py-2 bg-white border border-gray-200 text-slate-700 rounded-lg hover:bg-gray-50 font-medium transition">Annuler</button>
+                    <button @click="confirmCampaign(selected, selectAllMatching, filters)"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold transition shadow-lg shadow-indigo-500/20">Confirmer
+                        l'envoi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Client Modal (Alpine.js) -->
+<div x-data="{ open: false }" @open-modal.window="open = true" @keydown.escape.window="open = false" x-show="open"
+    class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak>
+
+    <!-- Backdrop -->
+    <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"></div>
+
+    <!-- Panel -->
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div x-show="open" @click.away="open = false" x-transition:enter="ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-gray-100">
+
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div
+                        class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-50 sm:mx-0 sm:h-10 sm:w-10">
+                        <i class="fas fa-user-plus text-indigo-600"></i>
+                    </div>
+                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg font-semibold leading-6 text-slate-900" id="modal-title">Ajouter un nouveau
+                            client</h3>
+                        <div class="mt-4">
+                            <form id="new-client-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700">ID Externe</label>
+                                    <input type="text" name="external_id" required
+                                        class="mt-1 block w-full rounded-lg border-gray-300 bg-gray-50 text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700">Genre</label>
+                                        <select name="gender"
+                                            class="mt-1 block w-full rounded-lg border-gray-300 bg-gray-50 text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                                            <option value="Male">Homme</option>
+                                            <option value="Female">Femme</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700">Tenure (Mois)</label>
+                                        <input type="number" name="tenure" required
+                                            class="mt-1 block w-full rounded-lg border-gray-300 bg-gray-50 text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700">Contrat</label>
+                                    <select name="contract"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 bg-gray-50 text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                                        <option value="Month-to-month">Mensuel</option>
+                                        <option value="One year">1 An</option>
+                                        <option value="Two year">2 Ans</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700">Service Internet</label>
+                                    <select name="internet_service"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 bg-gray-50 text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                                        <option value="Fiber optic">Fibre Optique</option>
+                                        <option value="DSL">DSL</option>
+                                        <option value="No">Aucun</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700">Mensualité ($)</label>
+                                    <input type="number" step="0.01" name="monthly_charges" required
+                                        class="mt-1 block w-full rounded-lg border-gray-300 bg-gray-50 text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-gray-100">
+                <button type="button" onclick="submitNewClient()"
+                    class="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition">Ajouter</button>
+                <button type="button" @click="open = false"
+                    class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition">Annuler</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function submitNewClient() {
+        const form = document.getElementById('new-client-form');
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/clients/new', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                showToast('Client ajouté avec succès', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (e) {
+            showToast('Erreur serveur', 'error');
+        }
+    }
+
+    async function confirmCampaign(ids, selectAll, filters) {
+        // Close modal first - targeting the specific element
+        const container = document.getElementById('clients-list-container');
+        if (container && container.__x) {
+            container.__x.$data.confirmOpen = false;
+        }
+
+        try {
+            const response = await fetch('/api/campaign/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ids: ids,
+                    select_all: selectAll,
+                    filters: filters
+                })
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                // Deselect all
+                document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+                // Reset Alpine state if possible, or reload
+                if (container && container.__x) {
+                    container.__x.$data.selected = [];
+                    container.__x.$data.selectAllMatching = false;
+                }
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (e) {
+            showToast('Erreur lors de l\'envoi', 'error');
+        }
+    }
+</script>
+{% endblock %}

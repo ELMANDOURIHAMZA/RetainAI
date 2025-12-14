@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="mb-3">Vue d'ensemble</h2>
+        <p class="text-muted">Analyse en temps réel de la base client.</p>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card kpi-card p-3">
+            <h5 class="text-muted">Taux de Churn Global</h5>
+            <div class="kpi-value risk-high">{{ kpis.churn_rate }}%</div>
+            <small class="text-danger"><i class="bi bi-arrow-up"></i> +1.2% vs mois dernier</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card kpi-card p-3">
+            <h5 class="text-muted">Revenu à Risque</h5>
+            <div class="kpi-value">${{ kpis.revenue_at_risk }}</div>
+            <small class="text-muted">Estimation mensuelle</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card kpi-card p-3">
+            <h5 class="text-muted">Satisfaction Moyenne</h5>
+            <div class="kpi-value risk-low">{{ kpis.avg_satisfaction }}/5</div>
+            <small class="text-success"><i class="bi bi-arrow-up"></i> Stable</small>
+        </div>
+    </div>
+</div>
+
+<!-- Chart -->
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card p-4">
+            <h4 class="mb-4">Démographie du Churn (Âge)</h4>
+            <canvas id="churnChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('churnChart').getContext('2d');
+    const churnChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.labels | tojson }},
+    datasets: [
+        {
+            label: 'Clients Partis (Churners)',
+            data: {{ chart_data.churners | tojson }},
+        backgroundColor: '#e74c3c'
+                },
+        {
+            label: 'Clients Fidèles',
+            data: {{ chart_data.non_churners | tojson }},
+        backgroundColor: '#2c3e50'
+                }
+    ]
+        },
+    options: {
+        responsive: true,
+            plugins: {
+            legend: {
+                position: 'top',
+                }
+        }
+    }
+    });
+</script>
+{% endblock %}
